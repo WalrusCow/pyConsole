@@ -1,9 +1,19 @@
 ''' Cover the screen in green ones and zeroes, as if in the Matrix. '''
 import time, sys
+import struct, termios, fcntl
 import random
-from console import getTerminalSize
 
 ESC = '\033'
+
+def getTerminalSize():
+    ''' Get the size of the terminal.
+    Return (rows, cols, x-pixels, y-pixels).
+    '''
+    FORMAT_STR = 'HHHH'
+
+    s = struct.pack(FORMAT_STR, 0, 0, 0, 0)
+    s = fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, s)
+    return struct.unpack(FORMAT_STR, s)
 
 def getLine(cols):
     ''' Create a matrix line. '''
@@ -26,7 +36,8 @@ def matrix():
         sys.stdout.flush()
         time.sleep(t)
 
-try:
-    matrix()
-except:
-    print('')
+if __name__ == '__main__':
+    try:
+        matrix()
+    except:
+        print('')
