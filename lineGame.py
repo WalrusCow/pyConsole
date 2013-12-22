@@ -1,38 +1,73 @@
 '''
 A game where the user and computer take turns erasing either
 1 or 2 lines. Whoever erases the last line loses.  The user
-and computer take turns going first.  Loser is 1 mod 3.
+and computer take turns going first.
 '''
 
+import sys
 from random import randint
+from collections import defaultdict
 
-games = wins = losses = 0
+def playGame():
+    ''' Wrapper to play a whole game. '''
+    SCOREBOARD = (
+        '\nSCOREBOARD\n'
+        'Games:  {games}\n'
+        'Wins:   {wins}\n'
+        'Losses: {losses}\n'
+    )
+    stats = defaultdict(int)
+    while True:
+        playerWon = playRound(stats['games'])
+        stats['wins'] += playerWon
+        stats['games'] += 1
+        stats['losses'] = stats['games'] - stats['wins']
+        print(SCOREBOARD.format(**stats))
 
-def newGame():
+def playRound(games):
+    ''' Wrapper to play a round. '''
+    WIN_MESSAGE = 'You won!'
+    LOSE_MESSAGE = 'You lost. Better luck next time.'
     lines = 22
-    print('Game started.')
-    printLines(lines)
-    if games % 2 == 0: playerTurn(lines)
-    else: compTurn(lines, 1)
+    turn = games % 2
+    players = (computerTurn, playerTurn)
+
+    print('Round started.')
+
+    # Decide who goes first
+    while True:
+        # Function to call to play
+        play = players[turn % 2]
+        printLines(lines)
+        # Play the turn and subtract the move
+        lines -= play(lines)
+
+        # Whose turn it is
+        turn = (turn + 1) % 2
+
+        if lines <= 0:
+            # Round is over
+            message = WIN_MESSAGE if turn else LOSE_MESSAGE
+            print(message)
+            return turn
 
 def playerTurn(lines):
-    erasedLines = getInput()
-    lines -= erasedLines
-    print('You erased {} lines!\n'.format(erasedLines))
-    printLines(lines)
+    ''' Human turn. '''
+    move = getInput()
+    print('You erased {} lines!'.format(move))
+    return move
 
-    gameOver('p') if lines < 1 else compTurn(lines, erasedLines)
-
-def compTurn(lines, lastMove):
-    erasedLines = (lines - 1) % 3
-    if erasedLines == 0:
-        erasedLines = randint(1, 2)
-    lines -= erasedLines
-    print('The computer erased {} lines!\n'.format(erasedLines))
-    printLines(lines)
-    gameOver('c') if lines < 1 else playerTurn(lines)
+def computerTurn(lines):
+    ''' Computer plays a turn. '''
+    # We want to always force the player to play on n == (1 mod 3)
+    move = (lines - 1) % 3
+    if move == 0:
+        move = randint(1, 2)
+    print('The computer erased {} lines!\n'.format(move))
+    return move
 
 def printLines(n):
+    ''' Print the lines. '''
     if n <= 0:
         print('There are no lines left!');
     elif n == 1:
@@ -43,7 +78,7 @@ def printLines(n):
         print('|' * n)
 
 def getInput():
-    VALID_NUMBERS = '12'
+    VALID_NUMBERS = ('1', '2')
     HELP_STRINGS = ('help', '?')
     EXIT_STRINGS = ('exit', 'quit')
     HELP = ('\nPlease enter a 1 or a 2. Type "help" for help or '
@@ -51,7 +86,6 @@ def getInput():
 
     while True:
         s = input('How many lines would you like to erase? ').lower()
-        if not s: continue
 
         if s in VALID_NUMBERS:
             return int(s)
@@ -62,24 +96,6 @@ def getInput():
         else:
             print(HELP)
 
-def gameOver(l):
-    SCOREBOARD = (
-        '\nSCOREBOARD\n'
-        'Games:  {0}\n'
-        'Wins:   {1}\n'
-        'Losses: {2}\n'
-    )
-    global games, losses, wins
-    games += 1
-    if l == 'p':
-        losses += 1
-        print('You lost.  Better luck next time!')
-    else:
-        wins += 1
-        print('You won!  Good job!')
-    print(SCOREBOARD.format(games, wins, losses))
-    newGame()
-
 def printRules():
     h = ('The rules are simple: every turn, you get to erase either 1 or\n'
         '2 lines. The last person to erase a line loses. You and the\n'
@@ -89,4 +105,8 @@ def printRules():
     print(h)
 
 if __name__ == '__main__':
-    newGame()
+    try:
+        playGame()
+    except KeyboardInterrupt as e:
+        print('')
+        sys.exit(0)
