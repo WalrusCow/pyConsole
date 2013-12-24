@@ -47,8 +47,7 @@ def playRound(games):
 
         if lines <= 0:
             # Round is over
-            message = WIN_MESSAGE if turn else LOSE_MESSAGE
-            print(message)
+            print(WIN_MESSAGE if turn else LOSE_MESSAGE)
             return turn
 
 def playerTurn(lines):
@@ -97,12 +96,12 @@ def getInput():
             print(HELP)
 
 def printRules():
-    h = ('The rules are simple: every turn, you get to erase either 1 or\n'
-        '2 lines. The last person to erase a line loses. You and the\n'
-        'computer will take turns going first, so that nobody is left at\n'
-        'an unfair advantage.')
-    print('\nHelp:\n')
-    print(h)
+    RULES = (
+        '\nRules:\n'
+        'Every turn, you get to erase either 1 or 2 lines.\n'
+        'The last person to erase a line loses.'
+    )
+    print(HELP)
 
 if __name__ == '__main__':
     try:
